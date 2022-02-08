@@ -137,7 +137,11 @@ $util.qr($ctx.stash.put(\\"hasAuth\\", true))
   #if( !$util.isNull($ctx.args.parent) )
     #set( $parentClaim0 = $util.defaultIfNull($ctx.identity.claims.get(\\"sub\\"), \\"___xamznone____\\") )
     #if( $util.isString($ctx.args.parent) )
-      #set( $parentCondition0 = ($parentClaim0 == $ctx.args.parent) )
+      #foreach( $claim in $parentClaim0 )
+        #if( $claim == $ctx.args.parent )
+          #set( $parentCondition0 = true )
+        #end
+      #end
     #else
       #set( $parentCondition0 = ($parentClaim0 == $util.defaultIfNull($ctx.args.parent.get(\\"eq\\"), \\"___xamznone____\\")) )
     #end
@@ -151,7 +155,11 @@ $util.qr($ctx.stash.put(\\"hasAuth\\", true))
   #if( !$util.isNull($ctx.args.child) )
     #set( $childClaim1 = $util.defaultIfNull($ctx.identity.claims.get(\\"sub\\"), \\"___xamznone____\\") )
     #if( $util.isString($ctx.args.child) )
-      #set( $childCondition1 = ($childClaim1 == $ctx.args.child) )
+      #foreach( $claim in $childClaim1 )
+        #if( $claim == $ctx.args.child )
+          #set( $childCondition1 = true )
+        #end
+      #end
     #else
       #set( $childCondition1 = ($childClaim1 == $util.defaultIfNull($ctx.args.child.get(\\"eq\\"), \\"___xamznone____\\")) )
     #end

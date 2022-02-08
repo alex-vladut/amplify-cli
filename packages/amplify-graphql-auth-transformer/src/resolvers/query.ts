@@ -82,44 +82,48 @@ const generateAuthOnRelationalModelQueryExpression = (
         const { claim, field } = primaryFieldMap.get(role.entity);
         modelQueryExpression.push(
           set(ref(`primaryRole${idx}`), getOwnerClaim(role.claim!)),
-          ifElse(
-            and([
-              parens(not(ref(`util.isNull($ctx.${claim}.${field})`))),
-              parens(equals(ref(`ctx.${claim}.${field}`), ref(`primaryRole${idx}`))),
+          iff(
+            not(ref(`util.isNull($ctx.${claim}.${field})`)),
+            forEach(ref('role'), ref(`primaryRole${idx}`), [
+              iff(
+                equals(ref('role'), ref(`ctx.${claim}.${field}`)),
+                compoundExpression([
+                  set(ref(IS_AUTHORIZED_FLAG), bool(true)),
+                  qref(methodCall(ref('ctx.stash.put'), str('authFilter'), nul())),
+                ]),
+              ),
             ]),
+          ),
+          iff(
+            and([not(ref(IS_AUTHORIZED_FLAG)), methodCall(ref('util.isNull'), ref('ctx.stash.authFilter'))]),
             compoundExpression([
+              qref(methodCall(ref(`ctx.${claim}.put`), str(field), ref(`primaryRole${idx}`))),
               set(ref(IS_AUTHORIZED_FLAG), bool(true)),
-              qref(methodCall(ref('ctx.stash.put'), str('authFilter'), nul())),
             ]),
-            iff(
-              and([not(ref(IS_AUTHORIZED_FLAG)), methodCall(ref('util.isNull'), ref('ctx.stash.authFilter'))]),
-              compoundExpression([
-                qref(methodCall(ref(`ctx.${claim}.put`), str(field), ref(`primaryRole${idx}`))),
-                set(ref(IS_AUTHORIZED_FLAG), bool(true)),
-              ]),
-            ),
           ),
         );
       } else if (role.strategy === 'groups') {
         const { claim, field } = primaryFieldMap.get(role.entity);
         modelQueryExpression.push(
           set(ref(`primaryRole${idx}`), getIdentityClaimExp(str(role.claim!), str(NONE_VALUE))),
-          ifElse(
-            and([
-              parens(not(ref(`util.isNull($ctx.${claim}.${field})`))),
-              parens(equals(ref(`ctx.${claim}.${field}`), ref(`primaryRole${idx}`))),
+          iff(
+            not(ref(`util.isNull($ctx.${claim}.${field})`)),
+            forEach(ref('role'), ref(`primaryRole${idx}`), [
+              iff(
+                equals(ref('role'), ref(`ctx.${claim}.${field}`)),
+                compoundExpression([
+                  set(ref(IS_AUTHORIZED_FLAG), bool(true)),
+                  qref(methodCall(ref('ctx.stash.put'), str('authFilter'), nul())),
+                ]),
+              ),
             ]),
+          ),
+          iff(
+            and([not(ref(IS_AUTHORIZED_FLAG)), methodCall(ref('util.isNull'), ref('ctx.stash.authFilter'))]),
             compoundExpression([
+              qref(methodCall(ref(`ctx.${claim}.put`), str(field), ref(`primaryRole${idx}`))),
               set(ref(IS_AUTHORIZED_FLAG), bool(true)),
-              qref(methodCall(ref('ctx.stash.put'), str('authFilter'), nul())),
             ]),
-            iff(
-              and([not(ref(IS_AUTHORIZED_FLAG)), methodCall(ref('util.isNull'), ref('ctx.stash.authFilter'))]),
-              compoundExpression([
-                qref(methodCall(ref(`ctx.${claim}.put`), str(field), ref(`primaryRole${idx}`))),
-                set(ref(IS_AUTHORIZED_FLAG), bool(true)),
-              ]),
-            ),
           ),
         );
       }
@@ -154,10 +158,9 @@ const generateAuthOnModelQueryExpression = (
                 set(ref(`${role.entity}Claim${idx}`), claimExpression),
                 ifElse(
                   ref(`util.isString($ctx.args.${role.entity})`),
-                  set(
-                    ref(`${role.entity}Condition${idx}`),
-                    parens(equals(ref(`${role.entity}Claim${idx}`), ref(`ctx.args.${role.entity}`))),
-                  ),
+                  forEach(ref('claim'), ref(`${role.entity}Claim${idx}`), [
+                    iff(equals(ref('claim'), ref(`ctx.args.${role.entity}`)), set(ref(`${role.entity}Condition${idx}`), bool(true))),
+                  ]),
                   set(
                     ref(`${role.entity}Condition${idx}`),
                     parens(
@@ -188,10 +191,9 @@ const generateAuthOnModelQueryExpression = (
                 set(ref(`${role.entity}Claim${idx}`), claimExpression),
                 ifElse(
                   ref(`util.isString($ctx.args.${role.entity})`),
-                  set(
-                    ref(`${role.entity}Condition${idx}`),
-                    parens(equals(ref(`${role.entity}Claim${idx}`), ref(`ctx.args.${role.entity}`))),
-                  ),
+                  forEach(ref('claim'), ref(`${role.entity}Claim${idx}`), [
+                    iff(equals(ref('claim'), ref(`ctx.args.${role.entity}`)), set(ref(`${role.entity}Condition${idx}`), bool(true))),
+                  ]),
                   set(
                     ref(`${role.entity}Condition${idx}`),
                     parens(
@@ -241,10 +243,9 @@ const generateAuthOnModelQueryExpression = (
                 set(ref(`${role.entity}Claim${idx}`), claimExpression),
                 ifElse(
                   ref(`util.isString($ctx.args.${role.entity})`),
-                  set(
-                    ref(`${role.entity}Condition${idx}`),
-                    parens(equals(ref(`${role.entity}Claim${idx}`), ref(`ctx.args.${role.entity}`))),
-                  ),
+                  forEach(ref('claim'), ref(`${role.entity}Claim${idx}`), [
+                    iff(equals(ref('claim'), ref(`ctx.args.${role.entity}`)), set(ref(`${role.entity}Condition${idx}`), bool(true))),
+                  ]),
                   // this type is mainly applied on list queries with primaryKeys therefore we can use the get "eq" key
                   // to check if the dynamic role condition is met
                   set(
@@ -277,10 +278,9 @@ const generateAuthOnModelQueryExpression = (
                 set(ref(`${role.entity}Claim${idx}`), claimExpression),
                 ifElse(
                   ref(`util.isString($ctx.args.${role.entity})`),
-                  set(
-                    ref(`${role.entity}Condition${idx}`),
-                    parens(equals(ref(`${role.entity}Claim${idx}`), ref(`ctx.args.${role.entity}`))),
-                  ),
+                  forEach(ref('claim'), ref(`${role.entity}Claim${idx}`), [
+                    iff(equals(ref('claim'), ref(`ctx.args.${role.entity}`)), set(ref(`${role.entity}Condition${idx}`), bool(true))),
+                  ]),
                   // this type is mainly applied on list queries with primaryKeys therefore we can use the get "eq" key
                   // to check if the dynamic role condition is met
                   set(
